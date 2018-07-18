@@ -5,13 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --watch"
+    "build": "webpack --watch",
+    "start": "node jagoViewServer.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.16.3",
     "moment": "^2.22.2",
+    "nedb": "^1.8.0",
     "react": "^16.4.1",
     "react-bootstrap": "^0.32.1",
     "react-datetime": "^2.14.0",

@@ -9,6 +9,29 @@ import SaveButton from './saveButton'
 
 class App extends React.Component {
 
+    constructor (props) {
+        super(props)
+        this.state = {
+            list: []
+        }
+    }
+
+    updateList() {
+        this.loadListDatad()
+    }
+
+    loadListDatad () {
+        request
+        .get('/api/todoList')
+        .end((err, data) => {
+            if (err) {
+                console.log(err)
+                return
+            }
+            this.setState({list: data.body.list})
+        })
+    }
+
     render () {
         const samples = ['휴식', '잡무', '메일', '점심', '져녁', 'TODO']
 
@@ -17,12 +40,12 @@ class App extends React.Component {
                         <Grid>
                             <Row className="show-grid">
                                 <Col xs={4}><TodayTitle /></Col>
-                                <Col xs={8} ><TodoSampleList samples={samples}/></Col>
+                                <Col xs={8}><TodoSampleList samples={samples} updateList={this.updateList} /></Col>
                             </Row>
                         </Grid>
                     </Well>
-                    <TodoList />
-                        <SaveButton />
+                    <TodoList list={this.state.list}  />
+                    <SaveButton />
             </div>)
     }
 }

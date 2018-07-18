@@ -9,20 +9,23 @@ export default class TodoSampleList extends React.Component {
     }
 
     doClick (e) {
-        window.alert(e.target.value)
         const paramTitle = e.target.value
-        const paramStartDate = moment().format('YYYY-MM-DD HH:mm:ss')
+        const paramStartTime = moment().format('YYYY-MM-DD HH:mm:ss')
 
         request
-            .post('http://localhost:3000/api/todo')
-            .send({
+            .get('/api/addTodo')
+            .query({
                 title: paramTitle,
-                startDate: paramStartDate
+                startTime: paramStartTime
             })
-            .set('Accept', 'application/json')
             .end((err, res) => {
-                if (err) return ''
-                console.log('res.body.status = ', res.body.status)
+                if (err) {
+                    console.log(err)
+                    return
+                }
+                console.log('res.body.result = ', res.body.result)
+                // location.href = '/'
+                this.props.updateList()
             })
     }
 

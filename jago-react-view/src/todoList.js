@@ -1,5 +1,6 @@
 import React from 'react'
 import moment from 'moment'
+import request from 'superagent'
 import { ButtonGroup, Button, Table, FormControl } from 'react-bootstrap'
 
 export default class TodoList extends React.Component {
@@ -9,26 +10,33 @@ export default class TodoList extends React.Component {
             list: [],
             edited: false
         }
+
     }
 
     componentWillMount () {
-        const tempList = [
-            {listNo:0, title:'휴식', startTime: '2018.08.28 23:45:23', edited: false},
-            {listNo:1, title:'잡무', startTime: '2018.08.28 23:45:23', edited: false},
-            {listNo:2, title:'여러가지 일', startTime: '2018.08.28 23:45:23', edited: false},
-            {listNo:3, title:'제목 길게 길게.. 그리고 길게 길게', startTime: '2018.08.28 23:45:23', edited: false}
-        ]
-        this.setState({list: tempList})
+        this.loadListData()
+    }
+
+    loadListData () {
+        request
+            .get('/api/todoList')
+            .end((err, data) => {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+                this.setState({list: data.body.list})
+            })
     }
 
     handleChange (e) {
         this.setState({edited: true})
 
-        const eListNo = e.target.id
+        const eId = e.target.id
         const eTitle = e.target.value
         const eList = this.state.list.map(item => {
-            if (item.listNo == eListNo) {
-                item.listNo = eListNo
+            if (item._id == eId) {
+                item._id = eId
                 item.title = eTitle
                 item.startTime = moment().format('YYYY-MM-DD HH:mm:ss')
                 item.edited = true
@@ -40,27 +48,61 @@ export default class TodoList extends React.Component {
         console.log(JSON.stringify(this.state.list))
     }
 
+    doClickOfDelete (e) {
+        request
+            .get('/api/deleteTodo')
+            .query({ _id: e.target.id })
+            .end((err, data) => {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+                this.loadListData()
+            })
+    }
+
+    doClickOfAdd (e) {
+        const paramTitle = e.target.value
+        const paramStartTime = moment().format('YYYY-MM-DD HH:mm:ss')
+
+        request
+            .get('/api/addTodo')
+            .query({
+                title: paramTitle,
+                startTime: paramStartTime
+            })
+            .end((err, res) => {
+                if (err) return ''
+                console.log('res.body.result = ', res.body.result)
+                this.loadListData()
+            })
+
+    }
+
     render () {
         const listTitle = (<thead>
-                            <th> No.</th>
                             <th> Title</th>
                             <th width={100}> StartTime</th>
                             <th width={150}> Etc...</th>
                            </thead>) 
         const listRows = this.state.list.map(item => {
-            return (<tr key={item.listNo}>
-                        <td>{item.listNo}</td>
+            return (<tr key={item._id}>
                         <td><FormControl 
                                 type='text'
-                                id={item.listNo + ''}
+                                id={item._id}
                                 value={item.title}
                                 onChange={ e => this.handleChange(e) }/>
                         </td>
                         <td>{item.startTime}</td>
                         <td>
                             <ButtonGroup bsSize='xsmall'>
-                                <Button>Delete</Button>
-                                <Button>Add</Button>
+                                <Button 
+                                    id={item._id}
+                                    onClick={e => { this.doClickOfDelete(e) }}>Delete</Button>
+                                <Button
+                                    id={item._id}
+                                    value={item.title}
+                                    onClick={e => {this.doClickOfAdd(e)}}>Add</Button>
                             </ButtonGroup>
                         </td>
                     </tr>)
