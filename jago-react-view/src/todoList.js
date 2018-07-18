@@ -2,6 +2,8 @@ import React from 'react'
 import moment from 'moment'
 import request from 'superagent'
 import { ButtonGroup, Button, Table, FormControl } from 'react-bootstrap'
+import { Actions } from './actions.js'
+import { todoListStore } from './stores'
 
 export default class TodoList extends React.Component {
     constructor (props) {
@@ -9,6 +11,10 @@ export default class TodoList extends React.Component {
         this.state = {
             list: [],
             edited: false
+        }
+
+        todoListStore.onChange = () => {
+            this.setState({ list: todoListStore.list })
         }
 
     }
@@ -25,11 +31,11 @@ export default class TodoList extends React.Component {
                     console.log(err)
                     return
                 }
-                this.setState({list: data.body.list})
+                Actions.changeTodoList(data.body.list)
             })
     }
 
-    handleChange (e) {
+    handleChangeTitle (e) {
         this.setState({edited: true})
 
         const eId = e.target.id
@@ -44,14 +50,39 @@ export default class TodoList extends React.Component {
             return item
         })
 
-        this.setState({list: eList})
-        console.log(JSON.stringify(this.state.list))
+        Actions.changeTodoList(eList)
+    }
+
+    handleChangeStartTime (e) {
+        this.setState({edited: true})
+
+        const eId = e.target.id
+        const eStartTime = e.target.value
+        const eList = this.state.list.map(item => {
+            if (item._id == eId) {
+                item._id = eId
+                item.title = item.title
+                item.startTime = item.startTime.substring(0, 10) + eStartTime
+                item.edited = true
+            } 
+            return item
+        })
+
+        Actions.changeTodoList(eList)
+    }
+
+    getEditedList () {
+        return this.state.list.filter(item => {
+            return item.edited == true
+        })
     }
 
     doClickOfDelete (e) {
+        const editedList = this.getEditedList()
+        console.log('doClickOfDelete => list = ', editedList)
         request
             .get('/api/deleteTodo')
-            .query({ _id: e.target.id })
+            .query({ _id: e.target.id, list: editedList })
             .end((err, data) => {
                 if (err) {
                     console.log(err)
@@ -62,18 +93,19 @@ export default class TodoList extends React.Component {
     }
 
     doClickOfAdd (e) {
+        const editedList = this.getEditedList()
+        console.log('doClickOfAdd => list = ', editedList)
         const paramTitle = e.target.value
-        const paramStartTime = moment().format('YYYY-MM-DD HH:mm:ss')
-
+        const paramStartTime = moment().format('YYYY-MM-DD HH:mm')
         request
             .get('/api/addTodo')
             .query({
                 title: paramTitle,
-                startTime: paramStartTime
+                startTime: paramStartTime, 
+                list: editedList
             })
             .end((err, res) => {
-                if (err) return ''
-                console.log('res.body.result = ', res.body.result)
+                if (err) return
                 this.loadListData()
             })
 
@@ -86,14 +118,24 @@ export default class TodoList extends React.Component {
                             <th width={150}> Etc...</th>
                            </thead>) 
         const listRows = this.state.list.map(item => {
+            const itemStartTime = item.startTime
+            const startDay = itemStartTime.substring(0, 10)
+            const startTimeStr = itemStartTime.substring(10, itemStartTime.length)
             return (<tr key={item._id}>
                         <td><FormControl 
                                 type='text'
                                 id={item._id}
                                 value={item.title}
-                                onChange={ e => this.handleChange(e) }/>
+                                onChange={ e => this.handleChangeTitle(e) }/>
                         </td>
-                        <td>{item.startTime}</td>
+                        <td>
+                            <div>{startDay}</div>
+                            <FormControl 
+                                type='text'
+                                id={item._id}
+                                value={startTimeStr}
+                                onChange={ e => this.handleChangeStartTime(e) }/>
+                        </td>
                         <td>
                             <ButtonGroup bsSize='xsmall'>
                                 <Button 

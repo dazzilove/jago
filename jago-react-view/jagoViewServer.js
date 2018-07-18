@@ -27,8 +27,19 @@ const mydb = new NeDB({
     autoload: true
 })
 
+app.get('/api/todoList', (req, res) => {
+    mydb.find({}).sort({startTime: 1}).exec((err, data) => {
+        if (err) {
+            sendJSON(res, false, {msg: err})
+            return
+        }
+        sendJSON(res, true, {list: data})
+    })
+})
+
 app.get('/api/addTodo', (req, res) => {
     const q = req.query
+    saveEditedList(q.list)
     mydb.insert({
         title: q.title,
         startTime: q.startTime
@@ -42,19 +53,9 @@ app.get('/api/addTodo', (req, res) => {
     })
 })
 
-app.get('/api/todoList', (req, res) => {
-    mydb.find({}).sort({startTime: 1}).exec((err, data) => {
-        if (err) {
-            sendJSON(res, false, {msg: err})
-            return
-        }
-        sendJSON(res, true, {list: data})
-    })
-})
-
 app.get('/api/deleteTodo', (req, res) => {
     const q = req.query
-    console.log('q._id = ', q._id)
+    saveEditedList(q.list)
     mydb.remove({_id: q._id}, {}, (err, numRemoved) => {
         if (err) {
             sendJSON(res, false, {msg: err})
@@ -64,6 +65,23 @@ app.get('/api/deleteTodo', (req, res) => {
         sendJSON(res, true, {numRemoved: numRemoved})
     })
 })
+
+function saveEditedList (list) {
+    console.log('saveEditedList ==> list = ')
+    console.log(list)
+    list.map(item => {
+        mydb.update(
+            { _id: item._id}, 
+            { title: item.title, startTime: item.startTime }, 
+            {}, 
+            (err, numReplaced) => {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+        })
+    })
+}
 
 function sendJSON(res, result, obj) {
     obj['result'] = result

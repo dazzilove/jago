@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import request from 'superagent'
 import { Well, Grid, Row, Col, RowProps } from 'react-bootstrap'
 
 import TodayTitle from './todayTitle'
@@ -17,10 +18,10 @@ class App extends React.Component {
     }
 
     updateList() {
-        this.loadListDatad()
+        this.loadListData()
     }
 
-    loadListDatad () {
+    loadListData () {
         request
         .get('/api/todoList')
         .end((err, data) => {
@@ -40,7 +41,7 @@ class App extends React.Component {
                         <Grid>
                             <Row className="show-grid">
                                 <Col xs={4}><TodayTitle /></Col>
-                                <Col xs={8}><TodoSampleList samples={samples} updateList={this.updateList} /></Col>
+                                <Col xs={8}><TodoSampleList samples={samples} /></Col>
                             </Row>
                         </Grid>
                     </Well>

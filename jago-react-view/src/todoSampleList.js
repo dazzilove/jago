@@ -2,10 +2,15 @@ import React from 'react'
 import moment from 'moment'
 import request from 'superagent'
 import { Button, ButtonGroup } from 'react-bootstrap'
+import { Actions } from './actions.js'
+import { todoListStore } from './stores'
 
 export default class TodoSampleList extends React.Component {
     constructor (props) {
         super(props)
+        todoListStore.onChange = () => {
+            this.setState({ list: todoListStore.list })
+        }
     }
 
     doClick (e) {
@@ -23,9 +28,20 @@ export default class TodoSampleList extends React.Component {
                     console.log(err)
                     return
                 }
-                console.log('res.body.result = ', res.body.result)
-                // location.href = '/'
-                this.props.updateList()
+                this.setState({addResult: res.body.result})
+                this.loadListData()
+            })
+    }
+
+    loadListData () {
+        request
+            .get('/api/todoList')
+            .end((err, data) => {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+                Actions.changeTodoList(data.body.list)
             })
     }
 
