@@ -44,7 +44,7 @@ export default class TodoList extends React.Component {
             if (item._id == eId) {
                 item._id = eId
                 item.title = eTitle
-                item.startTime = moment().format('YYYY-MM-DD HH:mm:ss')
+                item.startTime = moment().format('YYYY-MM-DD HH:mm')
                 item.edited = true
             } 
             return item
@@ -73,13 +73,12 @@ export default class TodoList extends React.Component {
 
     getEditedList () {
         return this.state.list.filter(item => {
-            return item.edited == true
+            return (item.edited === true)
         })
     }
 
     doClickOfDelete (e) {
-        const editedList = this.getEditedList()
-        console.log('doClickOfDelete => list = ', editedList)
+        const editedList = JSON.stringify(this.getEditedList())
         request
             .get('/api/deleteTodo')
             .query({ _id: e.target.id, list: editedList })
@@ -93,8 +92,7 @@ export default class TodoList extends React.Component {
     }
 
     doClickOfAdd (e) {
-        const editedList = this.getEditedList()
-        console.log('doClickOfAdd => list = ', editedList)
+        const editedList = JSON.stringify(this.getEditedList())
         const paramTitle = e.target.value
         const paramStartTime = moment().format('YYYY-MM-DD HH:mm')
         request

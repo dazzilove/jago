@@ -66,10 +66,16 @@ app.get('/api/deleteTodo', (req, res) => {
     })
 })
 
+app.get('/api/saveEditedList', (req, res) => {
+    saveEditedList(req.query.list)
+})
+
 function saveEditedList (list) {
     console.log('saveEditedList ==> list = ')
     console.log(list)
-    list.map(item => {
+    const requestList = JSON.parse(list)
+    console.log(requestList)
+    requestList.map(item => {
         mydb.update(
             { _id: item._id}, 
             { title: item.title, startTime: item.startTime }, 

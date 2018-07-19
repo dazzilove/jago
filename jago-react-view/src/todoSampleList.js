@@ -15,13 +15,14 @@ export default class TodoSampleList extends React.Component {
 
     doClick (e) {
         const paramTitle = e.target.value
-        const paramStartTime = moment().format('YYYY-MM-DD HH:mm:ss')
+        const paramStartTime = moment().format('YYYY-MM-DD HH:mm')
 
         request
             .get('/api/addTodo')
             .query({
                 title: paramTitle,
-                startTime: paramStartTime
+                startTime: paramStartTime,
+                list: JSON.stringify(todoListStore.list)
             })
             .end((err, res) => {
                 if (err) {
